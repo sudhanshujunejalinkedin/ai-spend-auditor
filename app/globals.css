@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-zinc-50 text-zinc-950;
+  }
+}
+
+/* Agar @import se kaam nahi ban raha toh purana v3 style fallback use karenge */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
