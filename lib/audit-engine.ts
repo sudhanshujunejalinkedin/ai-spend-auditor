@@ -1,32 +1,42 @@
 export const runAudit = (tools: any[]) => {
-  let currentSpend = 0;
-  let recommendedSpend = 0;
+  // Standard Market Rates (PDF Requirement: Citation needed in PRICING_DATA.md)
+  const MARKET_RATES: Record<string, number> = {
+    "ChatGPT": 20, // Plus/Team standard
+    "Claude": 20,  // Pro standard
+    "Cursor": 20,  // Pro standard
+    "Gemini": 20,  // Advanced standard
+    "v0 / Windsurf": 20
+  };
+
+  let totalCurrent = 0;
+  let totalRecommended = 0;
 
   const breakdown = tools.map(tool => {
-    currentSpend += tool.monthlySpend;
-    let rec = tool.monthlySpend;
-    let note = "Plan is optimal.";
-
-    // Logic: ChatGPT Team minimum 2 seats check
-    if (tool.name === 'ChatGPT' && tool.plan === 'Team' && tool.seats < 2) {
-      rec = 20; 
-      note = "Downgrade to Plus (Team needs 2+ seats).";
-    }
+    totalCurrent += tool.monthlySpend;
     
-    // Logic: Claude API vs Pro seat
-    if (tool.name === 'Claude' && tool.monthlySpend > 40) {
-      rec = 20;
-      note = "Switch to Pro seat for flat-rate usage.";
-    }
+    // Logic: Agar user tool ka naam "ChatGPT" select karta hai, 
+    // to hum uska rates standard $20 se compare karenge
+    const standardPrice = MARKET_RATES[tool.name] || tool.monthlySpend;
+    const recommendedPrice = standardPrice * (tool.teamSize || 1);
+    
+    totalRecommended += recommendedPrice;
 
-    recommendedSpend += rec;
-    return { ...tool, recommendedPrice: rec, note };
+    return {
+      tool: tool.name,
+      current: tool.monthlySpend,
+      recommended: recommendedPrice,
+      note: tool.monthlySpend > recommendedPrice 
+        ? `Overpaying identified. Standard rate for ${tool.name} is $${standardPrice}/seat.`
+        : "Pricing is currently optimized for this tool."
+    };
   });
 
+  const savings = totalCurrent - totalRecommended;
+
   return {
-    current: currentSpend,
-    recommended: recommendedSpend,
-    savings: currentSpend - recommendedSpend,
-    breakdown
+    current: totalCurrent,
+    recommended: totalRecommended,
+    savings: savings > 0 ? savings : 0,
+    breakdown: breakdown
   };
 };

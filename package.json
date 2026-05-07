@@ -6,12 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest"
   },
   "dependencies": {
     "@supabase/supabase-js": "latest",
     "@tailwindcss/postcss": "^4.2.4",
     "clsx": "latest",
+    "groq-sdk": "^1.1.2",
     "lucide-react": "latest",
     "next": "latest",
     "react": "latest",
@@ -25,6 +27,7 @@
     "autoprefixer": "^10.5.0",
     "postcss": "^8.5.14",
     "tailwindcss": "^4.2.4",
-    "typescript": "latest"
+    "typescript": "latest",
+    "vitest": "^4.1.5"
   }
 }

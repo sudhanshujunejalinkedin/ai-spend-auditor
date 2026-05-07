@@ -2,45 +2,57 @@ import Link from "next/link";
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-screen bg-[#fafafa] flex flex-col items-center justify-center overflow-hidden">
-      {/* Background Decoration */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-gradient-to-b from-blue-50/50 to-transparent -z-10" />
+    <div className="relative min-h-screen bg-zinc-950 text-white flex flex-col items-center overflow-hidden font-sans">
+      {/* Background Subtle Gradient Overlay */}
+      <div className="absolute inset-0 bg-[radial-gradient(40%_40%_at_50%_10%,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent -z-10" />
+
+      {/* Header - Consistent with Audit Engine */}
       
-      <main className="max-w-4xl mx-auto px-6 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 mb-8">
-          <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
-          <span className="text-sm font-medium text-blue-700">Audit your SaaS spend instantly</span>
+
+      {/* Main Content */}
+      <main className="max-w-5xl mx-auto px-6 text-center pt-24 pb-16 flex-grow flex flex-col items-center justify-center">
+        {/* Animated Badge */}
+        <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-zinc-900 border border-zinc-800 mb-10 shadow-inner">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+          </span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-300">SYSTEM Q2 2026 READY</span>
         </div>
 
-        <h1 className="text-6xl md:text-7xl font-bold tracking-tight text-zinc-900 mb-6">
+        {/* Hero Title */}
+        <h1 className="text-6xl md:text-8xl font-extrabold tracking-tighter text-white mb-8 leading-[1.05]">
           Stop Overpaying for <br />
-          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 bg-clip-text text-transparent animate-gradient-xy">
             AI Tools
           </span>
         </h1>
 
-        <p className="text-xl text-zinc-500 mb-10 max-w-2xl mx-auto leading-relaxed">
-          The average team wastes $200/mo on unused AI seats. 
-          Get a professional audit and optimize your stack in 60 seconds.
+        {/* Subtitle */}
+        <p className="text-xl md:text-2xl text-zinc-400 mb-14 max-w-3xl mx-auto leading-relaxed">
+          The average team wastes <span className="text-white font-semibold">$200/mo</span> on unused AI seats and inefficient plans. Get a professional audit in <span className="text-white font-semibold">60 seconds</span>.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        {/* Dynamic Button Section */}
+        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
           <Link href="/audit">
-            <button className="px-8 py-4 bg-zinc-900 text-white rounded-xl font-semibold hover:bg-zinc-800 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
-              Start Free Audit →
+            <button className="px-12 py-5 bg-white text-zinc-950 rounded-2xl font-extrabold text-xl hover:bg-zinc-200 hover:shadow-[0_0_40px_8px_rgba(59,130,246,0.3)] hover:-translate-y-1 transition-all duration-300 active:scale-95 shadow-xl shadow-zinc-950/50">
+              Start Your Free Audit →
             </button>
           </Link>
-          <button className="px-8 py-4 bg-white text-zinc-600 border border-zinc-200 rounded-xl font-semibold hover:bg-zinc-50 transition-all">
+          <button className="px-12 py-5 bg-zinc-900 text-zinc-400 border border-zinc-800 rounded-2xl font-extrabold text-xl hover:bg-zinc-800 hover:text-white transition-all duration-200">
             See Example Report
           </button>
         </div>
 
-        <div className="mt-20 grid grid-cols-3 gap-8 opacity-40 grayscale">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" className="h-8 mx-auto" alt="ChatGPT" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Google_Gemini_logo.svg/1200px-Google_Gemini_logo.svg.png" className="h-8 mx-auto" alt="Gemini" />
-          <img src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Anthropic_logo.svg" className="h-6 mx-auto" alt="Claude" />
-        </div>
+        {/* Partner Logos - Dark Mode Optimized */}
+       
       </main>
+
+      {/* Footer */}
+      <footer className="w-full max-w-[1500px] mx-auto py-10 px-6 text-center text-zinc-600 text-sm border-t border-zinc-800/50">
+        © 2026 SpendsAudit AI. Audit performed locally on-device.
+      </footer>
     </div>
   );
 }
