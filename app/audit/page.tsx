@@ -92,8 +92,10 @@ export default function AuditPage() {
   const handleLeadSubmit = async () => {
     if (!email) return;
     setIsSubmitting(true);
+    
     try {
-      const { error } = await supabase.from("leads").insert([
+      // 1. Supabase Entry
+      const { error: dbError } = await supabase.from("leads").insert([
         {
           email: email,
           tool: formData.selectedTool,
@@ -101,18 +103,28 @@ export default function AuditPage() {
           company_data: formData,
         },
       ]);
-      if (error) throw error;
+      if (dbError) throw new Error(`DB Error: ${dbError.message}`);
 
-      await fetch("/api/send-audit", {
+      // 2. Email Sending
+      const response = await fetch("/api/send-audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, auditData: auditResult }),
+        body: JSON.stringify({ 
+          email, 
+          auditData: auditResult,
+          tool: formData.selectedTool 
+        }),
       });
 
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Email failed");
+
       setIsLeadSent(true);
-    } catch (err) {
-      console.error("Error saving lead:", err);
-      alert("Something went wrong, but your audit is ready!");
+      alert("Audit Report sent to your email!");
+    } catch (err: any) {
+      console.error("Submission Error:", err.message);
+      // Agar email fail ho tab bhi report toh dikh hi rahi hai
+      alert(`Notice: Audit saved but email failed: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }
