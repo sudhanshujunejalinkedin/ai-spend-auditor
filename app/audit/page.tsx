@@ -107,14 +107,14 @@ export default function AuditPage() {
 
       // 2. Email Sending
       const response = await fetch("/api/send-audit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          email, 
-          auditData: auditResult,
-          tool: formData.selectedTool 
-        }),
-      });
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ 
+    email, 
+    auditData: auditResult, 
+    tool: formData.selectedTool // Ye line zaroori hai LLM ke liye
+  }),
+});
 
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Email failed");
