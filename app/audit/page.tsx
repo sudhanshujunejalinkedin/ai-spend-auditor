@@ -12,7 +12,7 @@ import {
   X,
   CreditCard,
 } from "lucide-react";
-import { supabase } from "@/utils/supabase";
+import { supabase } from "@/lib/supabase";
 
 // --- Pricing & Logic Data ---
 const TOOLS_CONFIG: Record<string, any> = {
