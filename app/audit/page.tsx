@@ -136,6 +136,8 @@ export default function AuditPage() {
     });
     setStep(2);
 
+    
+
     const report =
       savings > 0
         ? `[AUDIT_LOG_026]\n**TARGET:** ${selectedTool} Optimization\n**ACTION:** ${recommendedAction}\n\n**FINANCIAL ANALYSIS:**\n• Current Run-rate: $${monthlySpend}/mo\n• Optimization Potential: $${savings}/mo\n• Annual Recovery: $${savings * 12}/year\n\n**STRATEGIC REASONING:**\n${reason}\n\n[RECOMMENDATION]\nTransition infrastructure by end of billing cycle to capture ${((savings / monthlySpend) * 100).toFixed(0)}% margin.`
