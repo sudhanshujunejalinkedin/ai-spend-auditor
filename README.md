@@ -10,7 +10,7 @@ A high-performance, privacy-first tool designed for Engineering Leaders to audit
 - **Styling:** Tailwind CSS (Zinc Palette)
 - **State Management:** React Hooks + LocalStorage
 - **Testing:** Vitest
-- **CI/CD:** GitHub Actions
+- **CI/CD:** GitHub Actions.
 
 ## Decisions & Trade-offs
 1. **LocalStorage over Database:** Chosen for 100% user privacy and zero-latency persistence. Audit data never leaves the user's device.
