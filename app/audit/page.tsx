@@ -119,50 +119,56 @@ export default function AuditPage() {
   };
 
   // --- Audit Logic Engine ---
+  // --- Audit Logic Engine ---
+  // --- Audit Logic Engine ---
   const runAuditEngine = () => {
     setIsGenerating(true);
     const { selectedTool, plan, monthlySpend, seats, useCase } = formData;
+    
     let recommendedAction = "Keep current plan";
     let savings = 0;
     let reason = "Your spend is aligned with industry benchmarks.";
 
-    if ((plan === "Team" || plan === "Business") && seats < 3) {
-      recommendedAction = "Downgrade to Individual/Pro";
-      const individualPrice = TOOLS_CONFIG[selectedTool].pricing[1] || 20;
-      savings = monthlySpend - individualPrice * seats;
-      reason = `You are paying for organizational overhead ($${monthlySpend}) but only utilizing ${seats} seats. Individual Pro plans cover identical core features.`;
-    } else if (plan.includes("API") && monthlySpend > 500) {
+    // 1. Get tool config and standard price
+    const toolConfig = TOOLS_CONFIG[selectedTool];
+    const planIndex = toolConfig.plans.indexOf(plan);
+    const standardPricePerSeat = toolConfig.pricing[planIndex] || 20;
+    const expectedTotal = standardPricePerSeat * seats;
+
+    // 2. Logic: Overpaying check
+    if (monthlySpend > expectedTotal) {
+      recommendedAction = "Verify Billing Cycle";
+      savings = monthlySpend - expectedTotal;
+      reason = `Your current spend ($${monthlySpend}) exceeds the standard ${plan} rate ($${standardPricePerSeat}/seat) for ${seats} seat(s). Check for hidden add-ons or ghost seats.`;
+    } 
+    // 3. Logic: Downgrade check (Team plan with 1-2 seats)
+    else if ((plan === "Team" || plan === "Business") && seats < 3) {
+      const proPrice = toolConfig.pricing[1] || 20; 
+      if (monthlySpend > proPrice * seats) {
+        recommendedAction = "Downgrade to Pro";
+        savings = monthlySpend - (proPrice * seats);
+        reason = `You are on a ${plan} plan but only using ${seats} seat(s). Switching to a Pro plan covers identical core features and saves capital.`;
+      }
+    }
+    // 4. Logic: API Enterprise check
+    else if (plan.includes("API") && monthlySpend > 500) {
       recommendedAction = "Explore Enterprise Flat Tier";
       savings = monthlySpend * 0.15;
-      reason =
-        "High API consumption detected. Switching to a direct Enterprise contract or using Credex can yield bulk discounts.";
-    } else if (
-      monthlySpend >
-      TOOLS_CONFIG[selectedTool].pricing[
-        TOOLS_CONFIG[selectedTool].plans.indexOf(plan)
-      ] * seats
-    ) {
-      recommendedAction = "Verify Billing Cycle";
-      savings =
-        monthlySpend -
-        TOOLS_CONFIG[selectedTool].pricing[
-          TOOLS_CONFIG[selectedTool].plans.indexOf(plan)
-        ] * seats;
-      reason =
-        "Your current spend exceeds the standard retail rate for this seat count. Check for ghost seats.";
+      reason = "High API consumption detected. Switching to a direct Enterprise contract can yield bulk discounts.";
     }
 
+    const finalSavings = Math.max(0, savings);
+
     setAuditResult({
-      savings: Math.max(0, savings),
+      savings: finalSavings,
       recommendedAction,
       reason,
       currentSpend: monthlySpend,
     });
     setStep(2);
 
-    const report =
-      savings > 0
-        ? `[AUDIT_LOG_026]\n**TARGET:** ${selectedTool} Optimization\n**ACTION:** ${recommendedAction}\n\n**FINANCIAL ANALYSIS:**\n• Current Run-rate: $${monthlySpend}/mo\n• Optimization Potential: $${savings}/mo\n• Annual Recovery: $${savings * 12}/year\n\n**STRATEGIC REASONING:**\n${reason}\n\n[RECOMMENDATION]\nTransition infrastructure by end of billing cycle to capture ${((savings / monthlySpend) * 100).toFixed(0)}% margin.`
+    const report = finalSavings > 0
+        ? `[AUDIT_LOG_026]\n**TARGET:** ${selectedTool} Optimization\n**ACTION:** ${recommendedAction}\n\n**FINANCIAL ANALYSIS:**\n• Current Run-rate: $${monthlySpend}/mo\n• Optimization Potential: $${finalSavings}/mo\n• Annual Recovery: $${finalSavings * 12}/year\n\n**STRATEGIC REASONING:**\n${reason}\n\n[RECOMMENDATION]\nTransition infrastructure by end of billing cycle to capture ${((finalSavings / monthlySpend) * 100).toFixed(0)}% margin.`
         : `[AUDIT_LOG_026]\n**STATUS:** OPTIMIZED\n\n**ANALYSIS:**\nYour ${selectedTool} deployment is lean. Monthly spend of $${monthlySpend} for ${seats} seats is perfectly within the 100th percentile of efficiency for ${useCase}.\n\n**NEXT STEPS:**\nMaintain current stack. We will notify you if ${selectedTool} updates their ${plan} pricing.`;
 
     let i = 0;
@@ -175,7 +181,6 @@ export default function AuditPage() {
       }
     }, 5);
   };
-
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-green-100 overflow-x-hidden">
       {/* Grid Background */}
