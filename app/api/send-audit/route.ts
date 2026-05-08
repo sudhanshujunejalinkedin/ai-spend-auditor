@@ -20,7 +20,7 @@ export async function POST(req: Request) {
           content: `Tool: ${tool}, Savings: $${auditData.savings}, Reason: ${auditData.reason}`
         }
       ],
-      model: "llama3-8b-8192",
+      model: "llama-3.3-70b-versatile",
     });
 
     const aiSummary = completion.choices[0]?.message?.content || auditData.reason;
