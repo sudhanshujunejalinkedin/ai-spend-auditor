@@ -1,22 +1,18 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import {
-  ShieldCheck,
-  Share2,
   RefreshCcw,
   ArrowRight,
   CheckCircle2,
-  AlertCircle,
   Lock,
   Download,
-  Terminal,
   Activity,
   Menu,
   X,
-  TrendingUp,
   CreditCard,
 } from "lucide-react";
+import { supabase } from "@/utils/supabase";
 
 // --- Pricing & Logic Data ---
 const TOOLS_CONFIG: Record<string, any> = {
@@ -68,9 +64,8 @@ export default function AuditPage() {
   const [displayText, setDisplayText] = useState("");
   const [email, setEmail] = useState("");
   const [isLeadSent, setIsLeadSent] = useState(false);
-  const [activeTab, setActiveTab] = useState<"summary" | "breakdown">(
-    "summary"
-  );
+  const [isSubmitting, setIsSubmitting] = useState(false); // NEW
+  const [activeTab, setActiveTab] = useState<"summary" | "breakdown">("summary");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -93,6 +88,37 @@ export default function AuditPage() {
     localStorage.setItem("spendsaudit_v2_data", JSON.stringify(formData));
   }, [formData]);
 
+  // --- NEW: Supabase Lead Submit Handler ---
+  const handleLeadSubmit = async () => {
+    if (!email) return;
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from("leads").insert([
+        {
+          email: email,
+          tool: formData.selectedTool,
+          savings: auditResult?.savings || 0,
+          company_data: formData,
+        },
+      ]);
+      if (error) throw error;
+
+      await fetch("/api/send-audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, auditData: auditResult }),
+      });
+
+      setIsLeadSent(true);
+    } catch (err) {
+      console.error("Error saving lead:", err);
+      alert("Something went wrong, but your audit is ready!");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // --- Audit Logic Engine ---
   const runAuditEngine = () => {
     setIsGenerating(true);
     const { selectedTool, plan, monthlySpend, seats, useCase } = formData;
@@ -114,16 +140,14 @@ export default function AuditPage() {
       monthlySpend >
       TOOLS_CONFIG[selectedTool].pricing[
         TOOLS_CONFIG[selectedTool].plans.indexOf(plan)
-      ] *
-        seats
+      ] * seats
     ) {
       recommendedAction = "Verify Billing Cycle";
       savings =
         monthlySpend -
         TOOLS_CONFIG[selectedTool].pricing[
           TOOLS_CONFIG[selectedTool].plans.indexOf(plan)
-        ] *
-          seats;
+        ] * seats;
       reason =
         "Your current spend exceeds the standard retail rate for this seat count. Check for ghost seats.";
     }
@@ -135,8 +159,6 @@ export default function AuditPage() {
       currentSpend: monthlySpend,
     });
     setStep(2);
-
-    
 
     const report =
       savings > 0
@@ -174,19 +196,13 @@ export default function AuditPage() {
             <span className="text-green-600 font-extrabold">AI</span>
           </div>
         </div>
-
         <div className="hidden md:flex items-center gap-8 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
-          <a href="#" className="hover:text-zinc-900 transition-colors">
-            Pricing Data
-          </a>
-          <a href="#" className="hover:text-zinc-900 transition-colors">
-            Audit Logic
-          </a>
+          <a href="#" className="hover:text-zinc-900 transition-colors">Pricing Data</a>
+          <a href="#" className="hover:text-zinc-900 transition-colors">Audit Logic</a>
           <button className="bg-zinc-900 text-white px-5 py-2 rounded-full hover:bg-green-600 transition-all">
             Connect Credex
           </button>
         </div>
-
         <button
           className="md:hidden text-zinc-700"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -208,8 +224,7 @@ export default function AuditPage() {
                 System Q2 2026 Ready
               </div>
               <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-[0.9] text-zinc-900">
-                Audit your AI{" "}
-                <span className="text-green-600">Spend.</span>
+                Audit your AI <span className="text-green-600">Spend.</span>
               </h1>
             </header>
 
@@ -217,102 +232,65 @@ export default function AuditPage() {
               <div className="bg-white border border-zinc-200 rounded-3xl p-6 md:p-10 space-y-8 shadow-sm">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                      Primary Tool
-                    </label>
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Primary Tool</label>
                     <select
                       className="w-full h-14 px-4 bg-zinc-50 border border-zinc-200 rounded-xl focus:border-green-500 outline-none font-bold text-zinc-900"
                       value={formData.selectedTool}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          selectedTool: e.target.value,
-                        })
-                      }
+                      onChange={(e) => setFormData({ ...formData, selectedTool: e.target.value })}
                     >
                       {Object.keys(TOOLS_CONFIG).map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
+                        <option key={t} value={t}>{t}</option>
                       ))}
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                      Active Plan
-                    </label>
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Active Plan</label>
                     <select
                       className="w-full h-14 px-4 bg-zinc-50 border border-zinc-200 rounded-xl focus:border-green-500 outline-none font-bold text-zinc-900"
                       value={formData.plan}
-                      onChange={(e) =>
-                        setFormData({ ...formData, plan: e.target.value })
-                      }
+                      onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
                     >
-                      {TOOLS_CONFIG[formData.selectedTool].plans.map(
-                        (p: string) => (
-                          <option key={p} value={p}>
-                            {p}
-                          </option>
-                        )
-                      )}
+                      {TOOLS_CONFIG[formData.selectedTool].plans.map((p: string) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                      Monthly Spend ($)
-                    </label>
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Monthly Spend ($)</label>
                     <input
                       type="number"
                       className="w-full h-14 px-4 bg-zinc-50 border border-zinc-200 rounded-xl focus:border-green-500 outline-none font-bold text-zinc-900"
                       value={formData.monthlySpend}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          monthlySpend: Number(e.target.value),
-                        })
-                      }
+                      onChange={(e) => setFormData({ ...formData, monthlySpend: Number(e.target.value) })}
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                      Seats
-                    </label>
+                    <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Seats</label>
                     <input
                       type="number"
                       className="w-full h-14 px-4 bg-zinc-50 border border-zinc-200 rounded-xl focus:border-green-500 outline-none font-bold text-zinc-900"
                       value={formData.seats}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          seats: Number(e.target.value),
-                        })
-                      }
+                      onChange={(e) => setFormData({ ...formData, seats: Number(e.target.value) })}
                     />
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-                    Primary Use Case
-                  </label>
+                  <label className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Primary Use Case</label>
                   <div className="flex flex-wrap gap-2">
-                    {["coding", "writing", "data", "research", "mixed"].map(
-                      (type) => (
-                        <button
-                          key={type}
-                          onClick={() =>
-                            setFormData({ ...formData, useCase: type })
-                          }
-                          className={`px-5 py-2.5 rounded-full border text-[11px] font-black uppercase transition-all ${
-                            formData.useCase === type
-                              ? "bg-green-600 border-green-600 text-white"
-                              : "bg-white border-zinc-200 text-zinc-500 hover:border-zinc-400"
-                          }`}
-                        >
-                          {type}
-                        </button>
-                      )
-                    )}
+                    {["coding", "writing", "data", "research", "mixed"].map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setFormData({ ...formData, useCase: type })}
+                        className={`px-5 py-2.5 rounded-full border text-[11px] font-black uppercase transition-all ${
+                          formData.useCase === type
+                            ? "bg-green-600 border-green-600 text-white"
+                            : "bg-white border-zinc-200 text-zinc-500 hover:border-zinc-400"
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -321,15 +299,11 @@ export default function AuditPage() {
                   className="w-full h-16 bg-zinc-900 text-white rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-green-600 transition-all group shadow-md"
                 >
                   Generate Professional Audit{" "}
-                  <ArrowRight
-                    size={18}
-                    className="group-hover:translate-x-1 transition-transform"
-                  />
+                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
             ) : (
               <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-700">
-                {/* Hero Results */}
                 <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden shadow-sm">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
                     <div>
@@ -339,17 +313,11 @@ export default function AuditPage() {
                       <h2 className="text-7xl md:text-9xl font-black tracking-tighter text-zinc-900">
                         ${auditResult.savings}
                       </h2>
-                      <p className="text-zinc-400 font-bold text-lg mt-2">
-                        Monthly capital leakage identified.
-                      </p>
+                      <p className="text-zinc-400 font-bold text-lg mt-2">Monthly capital leakage identified.</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-[10px] font-black text-green-600 uppercase">
-                        Annual Savings
-                      </p>
-                      <p className="text-4xl font-black text-green-600">
-                        ${auditResult.savings * 12}
-                      </p>
+                      <p className="text-[10px] font-black text-green-600 uppercase">Annual Savings</p>
+                      <p className="text-4xl font-black text-green-600">${auditResult.savings * 12}</p>
                     </div>
                   </div>
 
@@ -357,21 +325,13 @@ export default function AuditPage() {
                     <div className="flex gap-4 border-b border-zinc-200 pb-4">
                       <button
                         onClick={() => setActiveTab("summary")}
-                        className={`text-[10px] font-black uppercase tracking-widest transition-colors ${
-                          activeTab === "summary"
-                            ? "text-zinc-900"
-                            : "text-zinc-400"
-                        }`}
+                        className={`text-[10px] font-black uppercase tracking-widest transition-colors ${activeTab === "summary" ? "text-zinc-900" : "text-zinc-400"}`}
                       >
                         Summary
                       </button>
                       <button
                         onClick={() => setActiveTab("breakdown")}
-                        className={`text-[10px] font-black uppercase tracking-widest transition-colors ${
-                          activeTab === "breakdown"
-                            ? "text-zinc-900"
-                            : "text-zinc-400"
-                        }`}
+                        className={`text-[10px] font-black uppercase tracking-widest transition-colors ${activeTab === "breakdown" ? "text-zinc-900" : "text-zinc-400"}`}
                       >
                         Logic Breakdown
                       </button>
@@ -383,11 +343,7 @@ export default function AuditPage() {
                           <p
                             key={i}
                             className={`mb-1 ${
-                              l.startsWith("[")
-                                ? "text-green-400 font-bold"
-                                : l.startsWith("**")
-                                ? "text-white"
-                                : ""
+                              l.startsWith("[") ? "text-green-400 font-bold" : l.startsWith("**") ? "text-white" : ""
                             }`}
                           >
                             {l.replace(/\*\*/g, "")}
@@ -400,26 +356,16 @@ export default function AuditPage() {
                     ) : (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="p-6 bg-zinc-50 rounded-2xl border border-zinc-200">
-                          <p className="text-[10px] font-black text-zinc-400 uppercase mb-4">
-                            Current Spend
-                          </p>
+                          <p className="text-[10px] font-black text-zinc-400 uppercase mb-4">Current Spend</p>
                           <div className="flex justify-between items-end">
-                            <span className="text-2xl font-black text-zinc-900">
-                              ${auditResult.currentSpend}
-                            </span>
-                            <span className="text-xs text-zinc-400">
-                              {formData.plan} Tier
-                            </span>
+                            <span className="text-2xl font-black text-zinc-900">${auditResult.currentSpend}</span>
+                            <span className="text-xs text-zinc-400">{formData.plan} Tier</span>
                           </div>
                         </div>
                         <div className="p-6 bg-zinc-50 rounded-2xl border border-zinc-200">
-                          <p className="text-[10px] font-black text-zinc-400 uppercase mb-4">
-                            Recommended Action
-                          </p>
+                          <p className="text-[10px] font-black text-zinc-400 uppercase mb-4">Recommended Action</p>
                           <div className="flex justify-between items-end text-green-600">
-                            <span className="text-lg font-black">
-                              {auditResult.recommendedAction}
-                            </span>
+                            <span className="text-lg font-black">{auditResult.recommendedAction}</span>
                           </div>
                         </div>
                       </div>
@@ -427,20 +373,15 @@ export default function AuditPage() {
                   </div>
                 </div>
 
-                {/* Credex CTA for High Savings */}
                 {auditResult.savings > 500 && (
                   <div className="bg-zinc-900 rounded-3xl p-8 flex flex-col md:flex-row items-center gap-6">
                     <div className="w-16 h-16 bg-green-600/20 rounded-full flex items-center justify-center shrink-0">
                       <CreditCard className="text-green-400" size={32} />
                     </div>
                     <div>
-                      <h4 className="text-xl font-black text-white">
-                        Capture this with Credex
-                      </h4>
+                      <h4 className="text-xl font-black text-white">Capture this with Credex</h4>
                       <p className="text-zinc-400 text-sm">
-                        Your savings exceed $500/mo. You are eligible for bulk
-                        credit acquisition to slash an additional 20% off this
-                        bill.
+                        Your savings exceed $500/mo. You are eligible for bulk credit acquisition to slash an additional 20% off this bill.
                       </p>
                     </div>
                     <button className="bg-green-600 text-white px-6 py-3 rounded-xl font-black text-sm whitespace-nowrap hover:bg-green-700 transition-all">
@@ -451,16 +392,10 @@ export default function AuditPage() {
 
                 {auditResult.savings <= 0 && (
                   <div className="p-8 border-2 border-dashed border-zinc-200 rounded-3xl text-center">
-                    <CheckCircle2
-                      size={40}
-                      className="mx-auto text-green-500 mb-4"
-                    />
-                    <h4 className="text-xl font-black text-zinc-900">
-                      Efficiency Verified
-                    </h4>
+                    <CheckCircle2 size={40} className="mx-auto text-green-500 mb-4" />
+                    <h4 className="text-xl font-black text-zinc-900">Efficiency Verified</h4>
                     <p className="text-zinc-400 mt-2">
-                      You are spending well. Your unit costs align with standard
-                      benchmarks for {formData.selectedTool}.
+                      You are spending well. Your unit costs align with standard benchmarks for {formData.selectedTool}.
                     </p>
                   </div>
                 )}
@@ -471,12 +406,9 @@ export default function AuditPage() {
           {/* Sidebar */}
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-zinc-900 text-white rounded-3xl p-8 space-y-6 relative overflow-hidden">
-              <h3 className="text-2xl font-black leading-tight">
-                Infrastructure Intelligence.
-              </h3>
+              <h3 className="text-2xl font-black leading-tight">Infrastructure Intelligence.</h3>
               <p className="text-zinc-400 text-sm font-medium">
-                We've tracked 42 changes in AI pricing this week alone. Stay
-                ahead of vendor markups.
+                We've tracked 42 changes in AI pricing this week alone. Stay ahead of vendor markups.
               </p>
 
               {!isLeadSent ? (
@@ -488,34 +420,41 @@ export default function AuditPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
+                  {/* UPDATED: onClick → handleLeadSubmit, loading state added */}
                   <button
-                    onClick={() => setIsLeadSent(true)}
-                    className="w-full h-14 bg-green-600 text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 hover:bg-green-700 transition-all"
+                    onClick={handleLeadSubmit}
+                    disabled={isSubmitting || !email}
+                    className="w-full h-14 bg-green-600 text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 hover:bg-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Download size={18} />
-                    Download Strategy PDF
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                        </svg>
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Download size={18} />
+                        Download Strategy PDF
+                      </>
+                    )}
                   </button>
                 </div>
               ) : (
                 <div className="p-6 bg-zinc-800 border border-zinc-700 rounded-2xl text-center space-y-2">
                   <CheckCircle2 size={32} className="mx-auto text-green-500" />
-                  <p className="font-bold text-sm italic text-white">
-                    SpendsAudit v2 Sent!
-                  </p>
+                  <p className="font-bold text-sm italic text-white">SpendsAudit v2 Sent!</p>
                 </div>
               )}
             </div>
 
             <div className="p-8 border border-zinc-200 rounded-3xl space-y-4 bg-white shadow-sm">
-              <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest">
-                Benchmarked Vendors
-              </h4>
+              <h4 className="text-xs font-black text-zinc-400 uppercase tracking-widest">Benchmarked Vendors</h4>
               <div className="flex flex-wrap gap-2">
                 {Object.keys(TOOLS_CONFIG).map((t) => (
-                  <span
-                    key={t}
-                    className="px-3 py-1 bg-zinc-50 border border-zinc-200 rounded-full text-[10px] font-bold text-zinc-500"
-                  >
+                  <span key={t} className="px-3 py-1 bg-zinc-50 border border-zinc-200 rounded-full text-[10px] font-bold text-zinc-500">
                     {t}
                   </span>
                 ))}
@@ -525,17 +464,13 @@ export default function AuditPage() {
             <div className="p-6 bg-green-50 border border-green-200 rounded-2xl flex gap-4">
               <Lock className="text-green-600 shrink-0" size={20} />
               <p className="text-[10px] text-green-800 leading-relaxed font-bold uppercase tracking-tighter">
-                Data Sovereignty: Audits are performed locally on-device. No
-                proprietary seat counts are stored.
+                Data Sovereignty: Audits are performed locally on-device. No proprietary seat counts are stored.
               </p>
             </div>
 
             {step === 2 && (
               <button
-                onClick={() => {
-                  setStep(1);
-                  setDisplayText("");
-                }}
+                onClick={() => { setStep(1); setDisplayText(""); }}
                 className="w-full h-14 border border-zinc-200 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 hover:border-zinc-400 transition-all"
               >
                 <RefreshCcw size={14} /> Restart Audit
