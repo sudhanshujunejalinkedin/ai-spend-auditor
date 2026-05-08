@@ -1,114 +1,123 @@
-import { supabase } from "@/lib/supabase";
-import { Metadata } from "next";
 import Link from "next/link";
 
-type Props = {
-  params: { id: string };
-};
-
-// --- 1. VIRAL OG TAGS GENERATION ---
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { data } = await supabase
-    .from("leads")
-    .select("tool, savings")
-    .eq("id", params.id)
-    .single();
-
-  const savings = data?.savings || 0;
-  const tool = data?.tool || "AI Tools";
-  const annualSavings = savings * 12;
-
-  return {
-    title: `I found $${savings}/mo savings on ${tool}!`,
-    description: "Audit your AI spend in 30 seconds with SpendsAudit AI.",
-    openGraph: {
-      title: `Audit Result: $${annualSavings} Annual Recovery`,
-      description: `Optimizing ${tool} deployment. Check your AI leakage now.`,
-      url: `https://ai-spend-auditor.vercel.app/report/${params.id}`,
-      siteName: "SpendsAudit AI",
-      images: [
-        {
-          url: "/og-image.png",
-          width: 1200,
-          height: 630,
-        },
-      ],
-      locale: "en_US",
-      type: "website",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: `AI Spend Audit: $${savings} Monthly Savings`,
-      description: `I'm saving $${annualSavings} yearly. Audit yours!`,
-      images: ["/og-image.png"],
-    },
-  };
-}
-
-// --- 2. PUBLIC REPORT PAGE ---
-export default async function PublicReport({ params }: Props) {
-  // Ensure we fetch fresh data on every request
-  const { data: report, error } = await supabase
-    .from("leads")
-    .select("tool, savings")
-    .eq("id", params.id)
-    .single();
-
-  // ERROR HANDLING: If RLS blocks or ID is wrong
-  if (error || !report) {
-    return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 font-mono">
-        <div className="text-center space-y-6">
-          <div className="text-red-500 text-5xl font-black mb-2">404</div>
-          <h1 className="text-xl font-bold text-zinc-400">Audit not found or access denied.</h1>
-          <p className="text-zinc-600 text-xs max-w-xs mx-auto">
-            This could be due to a database sync delay or a row-level security policy.
-          </p>
-          <Link href="/" className="inline-block text-green-500 hover:text-white border border-green-500/30 px-6 py-2 rounded-full text-sm transition-all">
-            ← Go back to Auditor
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-black text-white p-6 md:p-8 flex flex-col items-center justify-center">
-      <div className="max-w-2xl w-full border border-zinc-800 bg-zinc-950/50 p-8 md:p-12 rounded-[2.5rem] text-center shadow-2xl relative overflow-hidden">
-        {/* Decorative background glow */}
-        <div className="absolute -top-24 -left-24 w-48 h-48 bg-green-500/10 blur-[100px]" />
+    <div className="relative min-h-screen bg-white text-zinc-900 flex flex-col items-center overflow-hidden font-sans">
+      
+      {/* Grid Background Pattern */}
+      <div
+        className="absolute inset-0 -z-10"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+            linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)
+          `,
+          backgroundSize: "72px 72px",
+        }}
+      />
+      {/* Subtle fade at edges */}
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_50%_0%,rgba(255,255,255,0)_0%,rgba(255,255,255,0.85)_100%)]" />
+
+      {/* Main Content */}
+      <main className="max-w-5xl mx-auto px-6 text-center pt-28 pb-20 flex-grow flex flex-col items-center justify-center">
         
-        <h1 className="text-zinc-500 uppercase tracking-[0.3em] text-[10px] font-black mb-6">
-          Verified Audit Result
-        </h1>
-        
-        <div className="text-7xl md:text-9xl font-black text-green-500 mb-4 tracking-tighter">
-          ${report.savings}
-        </div>
-        
-        <p className="text-zinc-400 mb-10 text-lg md:text-xl font-medium">
-          Monthly recovery potential identified for <span className="text-white border-b border-zinc-700">{report.tool}</span>
-        </p>
-        
-        <div className="bg-black/40 border border-zinc-800/50 p-6 rounded-2xl mb-12 text-left font-mono text-sm leading-relaxed">
-          <p className="text-zinc-500 mb-2 font-bold uppercase text-[10px] tracking-widest">[ANALYSIS_REPORT]</p>
-          <p className="text-zinc-300 italic">
-            "Infrastructure detected as sub-optimal. Implementing recommended seat-mapping and tier-adjustments could recover 
-            <span className="text-green-400 font-bold ml-1">${report.savings * 12} annually</span>."
-          </p>
+        {/* Pill Badge — Credex style */}
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white border border-zinc-200 shadow-sm mb-10">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+          </span>
+          <span className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+            SYSTEM Q2 2026 READY
+          </span>
         </div>
 
-        <Link 
-          href="/" 
-          className="inline-block bg-white hover:bg-green-500 text-black px-10 py-4 rounded-full font-black uppercase text-sm tracking-tighter transition-all hover:scale-105 active:scale-95"
-        >
-          Audit My Own Spend — Free →
-        </Link>
-        
-        <p className="mt-8 text-[10px] text-zinc-600 uppercase tracking-widest font-bold">
-          SpendsAudit AI v2.0 • Data Sovereign
+        {/* Hero Title */}
+        <h1 className="text-6xl md:text-8xl font-extrabold tracking-tighter text-zinc-900 mb-6 leading-[1.05]">
+          Stop Overpaying for{" "}
+          <br />
+          <span
+            className="font-extrabold"
+            style={{ color: "#16a34a" }} // Credex green
+          >
+            AI Tools
+          </span>
+        </h1>
+
+        {/* Subtitle */}
+        <p className="text-lg md:text-xl text-zinc-500 mb-12 max-w-2xl mx-auto leading-relaxed">
+          The average team wastes{" "}
+          <span className="text-zinc-900 font-semibold">$200/mo</span> on
+          unused AI seats and inefficient plans. Get a professional audit in{" "}
+          <span className="text-zinc-900 font-semibold">60 seconds</span>.
         </p>
-      </div>
+
+        {/* CTA Buttons — Credex style */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <Link href="/audit">
+            <button className="px-10 py-4 bg-zinc-900 text-white rounded-2xl font-bold text-lg hover:bg-zinc-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 active:scale-95 shadow-md">
+              Start Your Free Audit →
+            </button>
+          </Link>
+          <button className="px-10 py-4 bg-white text-zinc-600 border border-zinc-200 rounded-2xl font-bold text-lg hover:border-zinc-400 hover:text-zinc-900 transition-all duration-200 shadow-sm">
+            See Example Report
+          </button>
+        </div>
+
+        {/* Trust Strip — Credex style scrolling bar */}
+        <div className="mt-20 w-screen relative overflow-hidden border-t border-b border-zinc-100 py-3 bg-white/80 backdrop-blur-sm">
+          <div className="flex gap-10 animate-marquee whitespace-nowrap w-max">
+            {[
+              "Ownership auditing",
+              "Escrow style checks",
+              "24×7 support",
+              "Guarantee",
+              "Transfer ≤ 24h post-payment",
+              "Verified vendors",
+              "Ownership auditing",
+              "Escrow style checks",
+              "24×7 support",
+              "Guarantee",
+              "Transfer ≤ 24h post-payment",
+              "Verified vendors",
+            ].map((item, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-2 text-sm font-medium text-zinc-600"
+              >
+                <svg
+                  className="w-4 h-4 text-green-500 shrink-0"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="w-full max-w-[1500px] mx-auto py-8 px-6 text-center text-zinc-400 text-sm border-t border-zinc-100">
+        © 2026 SpendsAudit AI. Audit performed locally on-device.
+      </footer>
+
+      {/* Marquee keyframe */}
+      <style>{`
+        @keyframes marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+          animation: marquee 22s linear infinite;
+        }
+      `}</style>
     </div>
   );
 }

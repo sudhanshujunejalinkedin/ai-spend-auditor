@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: "SpendsAudit AI",
       images: [
         {
-          url: "/og-image.png", // Make sure this exists in your public folder
+          url: "/og-image.png",
           width: 1200,
           height: 630,
         },
@@ -47,19 +47,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 // --- 2. PUBLIC REPORT PAGE ---
 export default async function PublicReport({ params }: Props) {
+  // Ensure we fetch fresh data on every request
   const { data: report, error } = await supabase
     .from("leads")
     .select("tool, savings")
     .eq("id", params.id)
     .single();
 
-  // Error state if ID is wrong or RLS is blocking
+  // ERROR HANDLING: If RLS blocks or ID is wrong
   if (error || !report) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold text-zinc-500">Audit not found or deleted.</h1>
-          <Link href="/" className="text-green-500 hover:underline">← Go back to Auditor</Link>
+      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 font-mono">
+        <div className="text-center space-y-6">
+          <div className="text-red-500 text-5xl font-black mb-2">404</div>
+          <h1 className="text-xl font-bold text-zinc-400">Audit not found or access denied.</h1>
+          <p className="text-zinc-600 text-xs max-w-xs mx-auto">
+            This could be due to a database sync delay or a row-level security policy.
+          </p>
+          <Link href="/" className="inline-block text-green-500 hover:text-white border border-green-500/30 px-6 py-2 rounded-full text-sm transition-all">
+            ← Go back to Auditor
+          </Link>
         </div>
       </div>
     );
