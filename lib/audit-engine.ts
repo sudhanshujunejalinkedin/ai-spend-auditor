@@ -1,42 +1,51 @@
 export const runAudit = (tools: any[]) => {
-  // Standard Market Rates (PDF Requirement: Citation needed in PRICING_DATA.md)
+  // Standard Market Rates (Per Seat)
   const MARKET_RATES: Record<string, number> = {
-    "ChatGPT": 20, // Plus/Team standard
-    "Claude": 20,  // Pro standard
-    "Cursor": 20,  // Pro standard
-    "Gemini": 20,  // Advanced standard
-    "v0 / Windsurf": 20
+    "chatgpt": 20, 
+    "claude": 20,  
+    "cursor": 20,  
+    "gemini": 20,  
+    "v0": 20
   };
 
   let totalCurrent = 0;
   let totalRecommended = 0;
 
   const breakdown = tools.map(tool => {
-    totalCurrent += tool.monthlySpend;
+    // Current spend humesha number hona chahiye
+    const currentSpend = Number(tool.monthlySpend) || 0;
+    totalCurrent += currentSpend;
     
-    // Logic: Agar user tool ka naam "ChatGPT" select karta hai, 
-    // to hum uska rates standard $20 se compare karenge
-    const standardPrice = MARKET_RATES[tool.name] || tool.monthlySpend;
-    const recommendedPrice = standardPrice * (tool.teamSize || 1);
+    // Tool name ko normalize kar rahe hain taaki "ChatGPT" aur "chatgpt" dono chalein
+    const toolKey = tool.name.toLowerCase();
+    const standardPricePerSeat = MARKET_RATES[toolKey] || 20;
     
+    // Actual Seats count (default 1)
+    const seats = Number(tool.teamSize) || 1;
+    
+    // Ideal keemat = Standard Rate * Seats
+    const recommendedPrice = standardPricePerSeat * seats;
     totalRecommended += recommendedPrice;
+
+    const isOverpaying = currentSpend > recommendedPrice;
 
     return {
       tool: tool.name,
-      current: tool.monthlySpend,
+      current: currentSpend,
       recommended: recommendedPrice,
-      note: tool.monthlySpend > recommendedPrice 
-        ? `Overpaying identified. Standard rate for ${tool.name} is $${standardPrice}/seat.`
+      savings: isOverpaying ? currentSpend - recommendedPrice : 0,
+      note: isOverpaying 
+        ? `Overpaying! Standard rate for ${tool.name} is $${standardPricePerSeat}/seat.`
         : "Pricing is currently optimized for this tool."
     };
   });
 
-  const savings = totalCurrent - totalRecommended;
+  const totalSavings = totalCurrent - totalRecommended;
 
   return {
     current: totalCurrent,
     recommended: totalRecommended,
-    savings: savings > 0 ? savings : 0,
+    savings: totalSavings > 0 ? totalSavings : 0,
     breakdown: breakdown
   };
 };
