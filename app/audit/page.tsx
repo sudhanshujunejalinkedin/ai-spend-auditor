@@ -89,32 +89,44 @@ export default function AuditPage() {
   }, [formData]);
 
   // --- NEW: Supabase Lead Submit Handler ---
+  // --- State for Shareable URL ---
+  const [shareUrl, setShareUrl] = useState("");
+
+  // --- FIXED: Supabase + Email + Shareable Link Handler ---
   const handleLeadSubmit = async () => {
     if (!email) return;
     setIsSubmitting(true);
     
     try {
-      // 1. Supabase Entry
-      const { error: dbError } = await supabase.from("leads").insert([
+      // 1. Supabase Entry (Returning ID for unique URL)
+      const { data, error: dbError } = await supabase.from("leads").insert([
         {
           email: email,
           tool: formData.selectedTool,
           savings: auditResult?.savings || 0,
           company_data: formData,
         },
-      ]);
+      ]).select(); // .select() zaroori hai ID wapas lene ke liye
+
       if (dbError) throw new Error(`DB Error: ${dbError.message}`);
 
-      // 2. Email Sending
+      // Unique Shareable URL generate karna
+      if (data && data[0]) {
+        const reportId = data[0].id;
+        const generatedUrl = `${window.location.origin}/report/${reportId}`;
+        setShareUrl(generatedUrl);
+      }
+
+      // 2. Email Sending (LLM Powered)
       const response = await fetch("/api/send-audit", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ 
-    email, 
-    auditData: auditResult, 
-    tool: formData.selectedTool // Ye line zaroori hai LLM ke liye
-  }),
-});
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          email, 
+          auditData: auditResult, 
+          tool: formData.selectedTool 
+        }),
+      });
 
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Email failed");
@@ -123,15 +135,12 @@ export default function AuditPage() {
       alert("Audit Report sent to your email!");
     } catch (err: any) {
       console.error("Submission Error:", err.message);
-      // Agar email fail ho tab bhi report toh dikh hi rahi hai
       alert(`Notice: Audit saved but email failed: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // --- Audit Logic Engine ---
-  // --- Audit Logic Engine ---
   // --- Audit Logic Engine ---
   const runAuditEngine = () => {
     setIsGenerating(true);
@@ -153,7 +162,7 @@ export default function AuditPage() {
       savings = monthlySpend - expectedTotal;
       reason = `Your current spend ($${monthlySpend}) exceeds the standard ${plan} rate ($${standardPricePerSeat}/seat) for ${seats} seat(s). Check for hidden add-ons or ghost seats.`;
     } 
-    // 3. Logic: Downgrade check (Team plan with 1-2 seats)
+    // 3. Logic: Downgrade check (Team/Business with low seats)
     else if ((plan === "Team" || plan === "Business") && seats < 3) {
       const proPrice = toolConfig.pricing[1] || 20; 
       if (monthlySpend > proPrice * seats) {
@@ -369,8 +378,33 @@ export default function AuditPage() {
                         {isGenerating && (
                           <span className="inline-block w-2 h-4 bg-green-500 animate-pulse ml-1" />
                         )}
+                        {/* --- SHAREABLE LINK (Appears after typing ends) --- */}
+    {shareUrl && !isGenerating && (
+      <div className="mt-8 pt-6 border-t border-zinc-800 animate-in fade-in slide-in-from-bottom-2 duration-1000">
+        <p className="text-[10px] text-zinc-500 mb-3 uppercase tracking-[0.2em] font-black">
+          Privacy Protected Shareable Link:
+        </p>
+        <div className="flex gap-2 bg-black border border-zinc-800 p-2 rounded-xl items-center">
+          <input 
+            readOnly 
+            value={shareUrl} 
+            className="bg-transparent text-[11px] text-green-500 flex-1 outline-none px-2 font-mono truncate" 
+          />
+          <button 
+            onClick={() => { 
+              navigator.clipboard.writeText(shareUrl); 
+              alert("Copied! Now go viral"); 
+            }}
+            className="bg-green-600 text-black text-[10px] font-black px-4 py-2 rounded-lg uppercase hover:bg-white transition-all shrink-0"
+          >
+            Copy
+          </button>
+        </div>
+      </div>
+    )}
                       </div>
                     ) : (
+                      
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="p-6 bg-zinc-50 rounded-2xl border border-zinc-200">
                           <p className="text-[10px] font-black text-zinc-400 uppercase mb-4">Current Spend</p>
