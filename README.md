@@ -9,7 +9,7 @@ A high-performance, privacy-first tool designed for Engineering Leaders to audit
 - **Framework:** Next.js 14 (App Router)
 - **Styling:** Tailwind CSS (Zinc Palette)
 - **State Management:** React Hooks + LocalStorage
-- **Testing:** Vitest
+- **Testing:** Vitest.
 - **CI/CD:** GitHub Actions.
 
 ## Decisions & Trade-offs
@@ -32,3 +32,4 @@ The system evaluates four primary vectors:
    git clone [Your Repo Link]
    cd ai-spend-auditor
    npm install
+
