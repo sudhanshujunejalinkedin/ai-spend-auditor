@@ -24,8 +24,7 @@ jobs:
       run: npm install
 
     - name: Run Lint
-      # Bhai yahan humne bypass kiya hai taaki Windows wala directory error na aaye
-      run: npx next lint --dir app --dir components --dir lib
+      run: npx next lint app components lib
 
     - name: Run Tests
       run: npm test
