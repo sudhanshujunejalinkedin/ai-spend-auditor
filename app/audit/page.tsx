@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import {
   RefreshCcw,
   ArrowRight,
@@ -85,7 +86,162 @@ interface FormData {
 }
 
 // ─────────────────────────────────────────────
-// Scanning Progress Bar (Req #7)
+// Example Report Modal (from Landing Page)
+// ─────────────────────────────────────────────
+function ExampleReportModal({ onClose }: { onClose: () => void }) {
+  const tools = [
+    { name: "ChatGPT Plus",       cost: 20, seats: 8, usage: 12, status: "overlap",   alt: "Claude (included in Copilot)" },
+    { name: "GitHub Copilot",     cost: 19, seats: 8, usage: 78, status: "keep",      alt: null },
+    { name: "Midjourney",         cost: 30, seats: 5, usage: 8,  status: "cut",       alt: "Leonardo AI (Free tier)" },
+    { name: "Grammarly Business", cost: 15, seats: 8, usage: 22, status: "downgrade", alt: "Grammarly Free" },
+    { name: "Perplexity Pro",     cost: 20, seats: 3, usage: 5,  status: "cut",       alt: "Perplexity Free" },
+  ];
+
+  const statusConfig = {
+    keep:      { label: "Keep",      color: "text-green-600", bg: "bg-green-50 border-green-200" },
+    cut:       { label: "Cut",       color: "text-red-600",   bg: "bg-red-50 border-red-200" },
+    overlap:   { label: "Overlap",   color: "text-amber-600", bg: "bg-amber-50 border-amber-200" },
+    downgrade: { label: "Downgrade", color: "text-blue-600",  bg: "bg-blue-50 border-blue-200" },
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Header */}
+        <div className="sticky top-0 bg-white border-b border-zinc-100 px-6 py-4 rounded-t-3xl flex items-center justify-between z-10">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-zinc-900 flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-bold text-zinc-900 text-sm">Sample Audit Report</p>
+              <p className="text-zinc-400 text-xs">Acme Corp · 8-person team · May 2026</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center transition-colors"
+          >
+            <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="px-6 py-6 space-y-6">
+          {/* Savings Summary */}
+          <div className="bg-zinc-900 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:justify-between">
+            <div>
+              <p className="text-zinc-400 text-xs font-semibold uppercase tracking-wider mb-1">Estimated Monthly Savings</p>
+              <p className="text-4xl font-extrabold tracking-tighter" style={{ color: "#4ade80" }}>
+                $197<span className="text-xl text-zinc-400">/mo</span>
+              </p>
+              <p className="text-zinc-500 text-xs mt-1">$2,364/year if actioned today</p>
+            </div>
+            <div className="flex gap-4 sm:gap-6 text-center">
+              <div>
+                <p className="text-white font-bold text-xl">5</p>
+                <p className="text-zinc-400 text-xs">Tools Found</p>
+              </div>
+              <div>
+                <p className="text-amber-400 font-bold text-xl">3</p>
+                <p className="text-zinc-400 text-xs">Actions Needed</p>
+              </div>
+              <div>
+                <p className="text-green-400 font-bold text-xl">1</p>
+                <p className="text-zinc-400 text-xs">Keep As-Is</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Tool Breakdown */}
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-3">Tool Breakdown</p>
+            <div className="space-y-2">
+              {tools.map((tool) => {
+                const cfg = statusConfig[tool.status as keyof typeof statusConfig];
+                return (
+                  <div key={tool.name} className="border border-zinc-100 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:border-zinc-200 transition-colors">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold text-zinc-900 text-sm">{tool.name}</p>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${cfg.bg} ${cfg.color}`}>
+                          {cfg.label}
+                        </span>
+                      </div>
+                      {tool.alt && (
+                        <p className="text-zinc-400 text-xs mt-0.5">→ Switch to: <span className="text-zinc-600 font-medium">{tool.alt}</span></p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4 shrink-0">
+                      <div className="text-center">
+                        <p className="text-xs text-zinc-400">Cost/seat</p>
+                        <p className="font-bold text-zinc-900 text-sm">${tool.cost}/mo</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-zinc-400">Seats</p>
+                        <p className="font-bold text-zinc-900 text-sm">{tool.seats}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-zinc-400">Usage</p>
+                        <div className="flex items-center gap-1">
+                          <div className="w-14 h-1.5 rounded-full bg-zinc-100">
+                            <div
+                              className={`h-1.5 rounded-full ${tool.usage > 50 ? "bg-green-500" : tool.usage > 20 ? "bg-amber-400" : "bg-red-400"}`}
+                              style={{ width: `${tool.usage}%` }}
+                            />
+                          </div>
+                          <p className="font-bold text-zinc-900 text-sm">{tool.usage}%</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Action Plan */}
+          <div className="bg-zinc-50 border border-zinc-100 rounded-2xl p-5">
+            <p className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-3">Recommended Actions</p>
+            <ul className="space-y-2">
+              {[
+                { icon: "🔴", action: "Cancel Midjourney — usage too low, free tier is enough" },
+                { icon: "🔴", action: "Cancel Perplexity Pro — only 5% usage, free plan covers this" },
+                { icon: "🟡", action: "Remove ChatGPT Plus — already covered by Copilot's GPT-4 access" },
+                { icon: "🔵", action: "Downgrade Grammarly Business → Free for non-writers" },
+              ].map(({ icon, action }) => (
+                <li key={action} className="flex gap-2 text-sm text-zinc-700">
+                  <span className="shrink-0">{icon}</span>
+                  <span>{action}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* CTA inside modal */}
+          <Link href="/audit" className="block">
+            <button className="w-full py-4 bg-zinc-900 text-white rounded-2xl font-bold text-base hover:bg-zinc-700 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 active:scale-95">
+              Run Your Free Audit Now →
+            </button>
+          </Link>
+          <p className="text-center text-zinc-400 text-xs pb-1">No signup required · Results in 60 seconds</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Scanning Progress Bar
 // ─────────────────────────────────────────────
 const SCAN_STEPS = [
   "Fetching vendor pricing data…",
@@ -94,15 +250,15 @@ const SCAN_STEPS = [
   "Running optimization logic…",
   "Generating recovery roadmap…",
 ];
-
+ 
 function ScanningProgress({ onComplete }: { onComplete: () => void }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
-
+ 
   useEffect(() => {
     const totalDuration = 2800;
     const stepDuration = totalDuration / SCAN_STEPS.length;
-
+ 
     const stepInterval = setInterval(() => {
       setCurrentStep((prev) => {
         if (prev >= SCAN_STEPS.length - 1) {
@@ -112,7 +268,7 @@ function ScanningProgress({ onComplete }: { onComplete: () => void }) {
         return prev + 1;
       });
     }, stepDuration);
-
+ 
     const progressInterval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
@@ -123,65 +279,78 @@ function ScanningProgress({ onComplete }: { onComplete: () => void }) {
         return prev + 1;
       });
     }, totalDuration / 100);
-
+ 
     return () => {
       clearInterval(stepInterval);
       clearInterval(progressInterval);
     };
   }, [onComplete]);
-
+ 
   return (
-    <div className="bg-white border border-zinc-200 rounded-3xl p-8 md:p-10 space-y-8 shadow-sm">
-      {/* Animated icon */}
-      <div className="flex items-center gap-4">
-        <div className="relative w-12 h-12 shrink-0">
-          <div className="absolute inset-0 rounded-full border-2 border-green-200 animate-ping opacity-60" />
-          <div className="absolute inset-0 rounded-full border-2 border-green-500 animate-spin border-t-transparent" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Zap size={18} className="text-green-600" />
-          </div>
-        </div>
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-green-600">
-            Scanning Infrastructure
-          </p>
-          <p className="text-sm font-bold text-zinc-900 mt-0.5 transition-all duration-300">
-            {SCAN_STEPS[currentStep]}
-          </p>
-        </div>
+    <div className="bg-white border border-zinc-200 rounded-3xl p-8 md:p-10 shadow-sm">
+ 
+      {/* Top: percentage + step text */}
+      <div className="flex items-baseline justify-between mb-6">
+        <p className="text-4xl font-black text-zinc-900 tabular-nums">
+          {progress}
+          <span className="text-xl text-zinc-400">%</span>
+        </p>
+        <p className="text-[11px] font-bold text-zinc-400 text-right max-w-[60%] leading-snug">
+          {SCAN_STEPS[currentStep]}
+        </p>
       </div>
-
-      {/* Progress bar */}
-      <div className="space-y-2">
-        <div className="h-2 bg-zinc-100 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full transition-all duration-100 ease-linear"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <div className="flex justify-between text-[10px] font-bold text-zinc-400 uppercase">
-          <span>Analyzing…</span>
-          <span>{progress}%</span>
-        </div>
+ 
+      {/* Main progress bar — single clean bar */}
+      <div className="h-1.5 bg-zinc-100 rounded-full overflow-hidden mb-8">
+        <div
+          className="h-full bg-zinc-900 rounded-full transition-all duration-100 ease-linear"
+          style={{ width: `${progress}%` }}
+        />
       </div>
-
-      {/* Step dots */}
-      <div className="flex gap-2 items-center">
+ 
+      {/* Step list — like a checklist */}
+      <ul className="space-y-3">
         {SCAN_STEPS.map((step, i) => (
-          <div
-            key={step}
-            className={`flex-1 h-1 rounded-full transition-all duration-500 ${
-              i <= currentStep ? "bg-green-500" : "bg-zinc-100"
-            }`}
-          />
+          <li key={step} className="flex items-center gap-3">
+            {/* Status indicator */}
+            <div className="w-4 h-4 shrink-0 flex items-center justify-center">
+              {i < currentStep ? (
+                // Done
+                <svg viewBox="0 0 16 16" fill="none" className="w-4 h-4">
+                  <circle cx="8" cy="8" r="7" fill="#18181b" />
+                  <path d="M4.5 8l2.5 2.5 4-4" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              ) : i === currentStep ? (
+                // Active — simple pulsing dot
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-zinc-400 opacity-50" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-zinc-900" />
+                </span>
+              ) : (
+                // Pending
+                <span className="h-2.5 w-2.5 rounded-full border border-zinc-200 bg-zinc-50" />
+              )}
+            </div>
+            <span
+              className={`text-[11px] font-bold transition-colors duration-300 ${
+                i < currentStep
+                  ? "text-zinc-400 line-through"
+                  : i === currentStep
+                  ? "text-zinc-900"
+                  : "text-zinc-300"
+              }`}
+            >
+              {step}
+            </span>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────
-// Trust Badge — shown before audit (Req #2)
+// Trust Badge Sidebar
 // ─────────────────────────────────────────────
 function TrustBadgeSidebar() {
   return (
@@ -217,7 +386,7 @@ function TrustBadgeSidebar() {
 }
 
 // ─────────────────────────────────────────────
-// Shareable Link with Copy + Open (Req #3)
+// Shareable Link
 // ─────────────────────────────────────────────
 function ShareableLink({ url }: { url: string }) {
   const [copied, setCopied] = useState(false);
@@ -265,7 +434,7 @@ function ShareableLink({ url }: { url: string }) {
 }
 
 // ─────────────────────────────────────────────
-// Multi-Step Form (Req #6 — progressive disclosure)
+// Multi-Step Form
 // ─────────────────────────────────────────────
 function MultiStepForm({
   formData,
@@ -281,7 +450,6 @@ function MultiStepForm({
 
   return (
     <div className="bg-white border border-zinc-200 rounded-3xl p-6 md:p-10 shadow-sm space-y-8">
-      {/* Step progress indicator */}
       <div className="flex items-center gap-2">
         {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
           <div key={i} className="flex items-center gap-2 flex-1 last:flex-none">
@@ -310,13 +478,10 @@ function MultiStepForm({
         </span>
       </div>
 
-      {/* ── Step 1: Tool & Plan ── */}
       {formStep === 1 && (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
           <div>
-            <p className="text-[10px] font-black text-green-600 uppercase tracking-[0.3em] mb-1">
-              Step 1 of 3
-            </p>
+            <p className="text-[10px] font-black text-green-600 uppercase tracking-[0.3em] mb-1">Step 1 of 3</p>
             <h2 className="text-2xl font-black text-zinc-900">Which tool are you auditing?</h2>
             <p className="text-zinc-400 text-sm mt-1">Select the AI product and your current subscription tier.</p>
           </div>
@@ -361,13 +526,10 @@ function MultiStepForm({
         </div>
       )}
 
-      {/* ── Step 2: Spend & Seats ── */}
       {formStep === 2 && (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
           <div>
-            <p className="text-[10px] font-black text-green-600 uppercase tracking-[0.3em] mb-1">
-              Step 2 of 3
-            </p>
+            <p className="text-[10px] font-black text-green-600 uppercase tracking-[0.3em] mb-1">Step 2 of 3</p>
             <h2 className="text-2xl font-black text-zinc-900">What are you actually paying?</h2>
             <p className="text-zinc-400 text-sm mt-1">Enter your real invoice number — not the plan price.</p>
           </div>
@@ -410,13 +572,10 @@ function MultiStepForm({
         </div>
       )}
 
-      {/* ── Step 3: Use Case ── */}
       {formStep === 3 && (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
           <div>
-            <p className="text-[10px] font-black text-green-600 uppercase tracking-[0.3em] mb-1">
-              Step 3 of 3
-            </p>
+            <p className="text-[10px] font-black text-green-600 uppercase tracking-[0.3em] mb-1">Step 3 of 3</p>
             <h2 className="text-2xl font-black text-zinc-900">How is your team using it?</h2>
             <p className="text-zinc-400 text-sm mt-1">Helps us benchmark against the right cohort.</p>
           </div>
@@ -456,10 +615,9 @@ function MultiStepForm({
 }
 
 // ─────────────────────────────────────────────
-// Main Page
+// Main Audit Page
 // ─────────────────────────────────────────────
 export default function AuditPage() {
-  // "idle" | "scanning" | "result"
   const [phase, setPhase] = useState<"idle" | "scanning" | "result">("idle");
   const [isTyping, setIsTyping] = useState(false);
   const [displayText, setDisplayText] = useState("");
@@ -470,6 +628,7 @@ export default function AuditPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
+  const [showReport, setShowReport] = useState(false);
   const reportRef = useRef<string>("");
 
   const [formData, setFormData] = useState<FormData>({
@@ -480,7 +639,6 @@ export default function AuditPage() {
     useCase: "coding",
   });
 
-  // Persist form (non-sensitive fields only)
   useEffect(() => {
     try {
       const saved = localStorage.getItem("spendsaudit_v2_data");
@@ -494,12 +652,10 @@ export default function AuditPage() {
     } catch (_) {}
   }, [formData]);
 
-  // ── Audit Engine ──
   const runAuditEngine = () => {
     setPhase("scanning");
   };
 
-  // Called after scanning animation completes (Req #7)
   const computeAuditResult = () => {
     const { selectedTool, plan, monthlySpend, seats, useCase } = formData;
     let recommendedAction = "Keep current plan";
@@ -559,9 +715,7 @@ export default function AuditPage() {
     }, 6);
   };
 
-  // ── Lead Submit (Req #1 & #6 — null guard + robust error handling) ──
   const handleLeadSubmit = async () => {
-    // Guard: only proceed if audit is fully computed
     if (!auditResult || auditResult.savings === undefined || auditResult.savings === null) {
       alert("Please complete your audit first before requesting the report.");
       return;
@@ -574,7 +728,6 @@ export default function AuditPage() {
     setIsSubmitting(true);
 
     try {
-      // 1. Save to Supabase
       const { data, error: dbError } = await supabase
         .from("leads")
         .insert([
@@ -587,17 +740,13 @@ export default function AuditPage() {
         ])
         .select();
 
-      if (dbError) {
-        throw new Error(`Database error: ${dbError.message}`);
-      }
+      if (dbError) throw new Error(`Database error: ${dbError.message}`);
 
-      // 2. Generate shareable URL
       if (data && data[0]?.id) {
         const generatedUrl = `${window.location.origin}/report/${data[0].id}`;
         setShareUrl(generatedUrl);
       }
 
-      // 3. Send email report
       const response = await fetch("/api/send-audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -616,7 +765,6 @@ export default function AuditPage() {
       setIsLeadSent(true);
     } catch (err: any) {
       console.error("Submission error:", err.message);
-      // Non-blocking: don't lose the lead even if email fails
       if (!isLeadSent) {
         alert(`Your audit was saved, but we couldn't send the email: ${err.message}. Try again shortly.`);
       }
@@ -635,11 +783,12 @@ export default function AuditPage() {
     setActiveTab("summary");
   };
 
-  // ─────────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-white text-zinc-900 font-sans selection:bg-green-100 overflow-x-hidden">
+
+      {/* Example Report Modal */}
+      {showReport && <ExampleReportModal onClose={() => setShowReport(false)} />}
+
       {/* Grid Background */}
       <div
         className="fixed inset-0 -z-10 pointer-events-none"
@@ -650,34 +799,50 @@ export default function AuditPage() {
       />
       <div className="fixed inset-0 -z-10 pointer-events-none bg-gradient-to-b from-white/0 via-white/60 to-white/90" />
 
-      {/* Navigation */}
-      <nav className="h-16 md:h-20 border-b border-zinc-200 px-5 md:px-16 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-xl z-50">
-        <div className="text-xl md:text-2xl font-black tracking-tighter flex items-center gap-1">
-          <span className="text-zinc-900 italic">SpendsAudit</span>
-          <span className="text-green-600 font-extrabold">AI</span>
-        </div>
-        <div className="hidden md:flex items-center gap-8 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
-          <a href="#" className="hover:text-zinc-900 transition-colors">Pricing Data</a>
-          <a href="#" className="hover:text-zinc-900 transition-colors">Audit Logic</a>
-          <button className="bg-zinc-900 text-white px-5 py-2 rounded-full hover:bg-green-600 transition-all">
-            Connect Credex
+      {/* ─── Navigation (Landing Page Header) ─── */}
+      <nav className="h-16 sm:h-20 border-b border-zinc-100 px-4 sm:px-6 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-sm z-50 w-full">
+        <div className="max-w-5xl w-full mx-auto flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="text-xl sm:text-2xl font-extrabold tracking-tighter text-zinc-900 italic">
+            SpendsAudit<span className="text-green-600 not-italic">AI</span>
+          </Link>
+
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-8">
+            <div className="flex items-center gap-8 text-xs font-semibold uppercase tracking-widest text-zinc-500">
+              <a href="#" className="hover:text-zinc-900 transition-colors">Pricing Data</a>
+              <a href="#" className="hover:text-zinc-900 transition-colors">Audit Logic</a>
+            </div>
+            <button
+              onClick={() => setShowReport(true)}
+              className="px-5 py-2 rounded-full bg-zinc-900 text-white hover:bg-green-600 transition-all font-semibold text-xs uppercase tracking-widest"
+            >
+              See Example Report
+            </button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            className="md:hidden text-zinc-700 p-1"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
-        <button
-          className="md:hidden text-zinc-700 p-1"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Toggle menu"
-        >
-          {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
       </nav>
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-zinc-200 px-6 py-5 space-y-4 z-40">
-          <a href="#" className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Pricing Data</a>
-          <a href="#" className="block text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">Audit Logic</a>
-          <button className="w-full bg-zinc-900 text-white py-3 rounded-xl font-black text-sm">Connect Credex</button>
+        <div className="md:hidden bg-white border-b border-zinc-100 px-6 py-5 space-y-4 z-40">
+          <a href="#" className="block text-xs font-semibold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-colors">Pricing Data</a>
+          <a href="#" className="block text-xs font-semibold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-colors">Audit Logic</a>
+          <button
+            onClick={() => { setShowReport(true); setIsMobileMenuOpen(false); }}
+            className="w-full bg-zinc-900 text-white py-3 rounded-2xl font-bold text-sm hover:bg-green-600 transition-all"
+          >
+            See Example Report
+          </button>
         </div>
       )}
 
@@ -703,7 +868,6 @@ export default function AuditPage() {
               </p>
             </header>
 
-            {/* Phase: idle → multi-step form */}
             {phase === "idle" && (
               <MultiStepForm
                 formData={formData}
@@ -712,15 +876,12 @@ export default function AuditPage() {
               />
             )}
 
-            {/* Phase: scanning → progress bar (Req #7) */}
             {phase === "scanning" && (
               <ScanningProgress onComplete={computeAuditResult} />
             )}
 
-            {/* Phase: result → report */}
             {phase === "result" && auditResult && (
               <div className="space-y-6 animate-in fade-in slide-in-from-bottom-6 duration-700 min-w-0">
-                {/* Main result card */}
                 <div className="bg-white border border-zinc-200 rounded-[2.5rem] p-6 md:p-12 relative overflow-hidden shadow-sm">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8 md:mb-12">
                     <div>
@@ -742,7 +903,6 @@ export default function AuditPage() {
                     </div>
                   </div>
 
-                  {/* Tabs */}
                   <div className="space-y-5">
                     <div className="flex gap-4 border-b border-zinc-200 pb-3">
                       {(["summary", "breakdown"] as const).map((tab) => (
@@ -761,7 +921,6 @@ export default function AuditPage() {
                     </div>
 
                     {activeTab === "summary" ? (
-                      /* Terminal-style output — overflow handled (Req #5) */
                       <div className="bg-zinc-950 rounded-2xl p-5 md:p-8 border border-zinc-800 font-mono text-xs md:text-sm text-zinc-400 leading-relaxed shadow-inner max-w-full overflow-x-auto">
                         {displayText.split("\n").map((line, i) => (
                           <p
@@ -780,7 +939,6 @@ export default function AuditPage() {
                         {isTyping && (
                           <span className="inline-block w-2 h-4 bg-green-500 animate-pulse ml-1" />
                         )}
-                        {/* Shareable link (Req #3) — only after typing & URL exists */}
                         {shareUrl && !isTyping && <ShareableLink url={shareUrl} />}
                       </div>
                     ) : (
@@ -810,7 +968,6 @@ export default function AuditPage() {
                   </div>
                 </div>
 
-                {/* High savings CTA */}
                 {auditResult.savings > 500 && (
                   <div className="bg-zinc-900 rounded-3xl p-6 md:p-8 flex flex-col sm:flex-row items-start sm:items-center gap-5">
                     <div className="w-14 h-14 bg-green-600/20 rounded-full flex items-center justify-center shrink-0">
@@ -828,7 +985,6 @@ export default function AuditPage() {
                   </div>
                 )}
 
-                {/* Efficiency verified */}
                 {auditResult.savings <= 0 && (
                   <div className="p-6 md:p-8 border-2 border-dashed border-zinc-200 rounded-3xl text-center space-y-3">
                     <CheckCircle2 size={36} className="mx-auto text-green-500" />
@@ -839,7 +995,6 @@ export default function AuditPage() {
                   </div>
                 )}
 
-                {/* Restart */}
                 <button
                   onClick={handleReset}
                   className="w-full h-12 border border-zinc-200 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900 hover:border-zinc-400 transition-all"
@@ -852,13 +1007,10 @@ export default function AuditPage() {
 
           {/* ── Right Sidebar ── */}
           <div className="lg:col-span-5 space-y-5 md:space-y-6">
-
-            {/* Conditional sidebar: trust badge BEFORE result, lead capture AFTER (Req #2) */}
             {phase !== "result" ? (
               <TrustBadgeSidebar />
             ) : (
               <div className="bg-zinc-900 text-white rounded-3xl p-6 md:p-8 space-y-5">
-                {/* Req #4 — Updated copy */}
                 <div>
                   <div className="w-10 h-10 bg-green-600/20 rounded-xl flex items-center justify-center mb-4">
                     <BarChart3 className="text-green-400" size={20} />
@@ -881,7 +1033,6 @@ export default function AuditPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleLeadSubmit()}
                     />
-                    {/* Req #4 — "Send Detailed Audit to Email" */}
                     <button
                       onClick={handleLeadSubmit}
                       disabled={isSubmitting || !email || !auditResult}
@@ -916,7 +1067,6 @@ export default function AuditPage() {
               </div>
             )}
 
-            {/* Benchmarked vendors */}
             <div className="p-6 md:p-8 border border-zinc-200 rounded-3xl space-y-4 bg-white shadow-sm">
               <h4 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Benchmarked Vendors</h4>
               <div className="flex flex-wrap gap-2">
@@ -928,7 +1078,6 @@ export default function AuditPage() {
               </div>
             </div>
 
-            {/* Privacy badge */}
             <div className="p-5 bg-green-50 border border-green-200 rounded-2xl flex gap-3 items-start">
               <Lock className="text-green-600 shrink-0 mt-0.5" size={18} />
               <p className="text-[10px] text-green-800 leading-relaxed font-bold uppercase tracking-tight">
