@@ -3,7 +3,7 @@
 SpendsAudit AI is a dedicated financial auditing platform designed for Engineering Managers and Founders to identify, quantify, and resolve overspending on AI infrastructure within 60 seconds.
 
 ## Project Resources
-- **Deployed URL:** https://ai-spend-auditor-5ym99d3pz.vercel.app
+- **Deployed URL:** https://ai-spend-auditor.vercel.app
 - **GitHub Repository:** https://github.com/sudhanshujunejalinkedin/ai-spend-auditor
 
 ## Technical Architecture
