@@ -3,6 +3,8 @@ name: CI (Lint & Test)
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
@@ -22,6 +24,8 @@ jobs:
       run: npm install
 
     - name: Run Lint
-      run: npx next lint  
+      # Bhai yahan humne bypass kiya hai taaki Windows wala directory error na aaye
+      run: npx next lint --dir app --dir components --dir lib
+
     - name: Run Tests
       run: npm test
