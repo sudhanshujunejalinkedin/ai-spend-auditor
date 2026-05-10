@@ -24,7 +24,8 @@ jobs:
       run: npm install
 
     - name: Run Lint
-      run: npx next lint --file app --file components --file lib
+      
+      run: ./node_modules/.bin/eslint app components lib --ext .js,.jsx,.ts,.tsx
 
     - name: Run Tests
       run: npm test
