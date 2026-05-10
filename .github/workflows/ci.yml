@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  # Ye line Node.js 24 wali warning ko fix kar degi
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true 
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,14 +21,14 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: 20
+        node-version: 24 # Node 24 use karte hain latest standards ke liye
         cache: 'npm'
 
     - name: Install Dependencies
       run: npm install
 
     - name: Run Lint
-      run: npx next lint app components lib
+      run: npx next lint . --file app --file components --file lib
 
     - name: Run Tests
       run: npm test
