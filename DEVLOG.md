@@ -68,5 +68,5 @@
 * Deployed the app to Vercel.  
 * Verified all pricing links in `PRICING_DATA.md`.  
 **What I learned:** Documentation takes almost as much effort as the code if you want to do it right.  
-**Blockers:** None. Ready for submission.  
+**Blockers:**  None. Ready for submission.  
 **Plan for tomorrow:** Submit the assignment.
