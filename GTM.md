@@ -49,4 +49,4 @@ Since SpendsAudit AI is built to surface Credex for high-spend users, our unfair
 * **Tool Audits Performed:** 250+
 * **Lead Capture Rate:** 15% (~37 high-intent emails)
 * **Credex Click-throughs:** 5+ (for audits showing >$500 savings)
-* **Social Shares:** 10+ screenshots of the "Audit Results Page" shared on LinkedIn/X.
+* **Social Shares:** 10+ screenshots of the "Audit Results Page" shared on LinkedIn.
